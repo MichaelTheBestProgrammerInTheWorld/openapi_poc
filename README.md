@@ -1,12 +1,12 @@
-# OpenAPI Generator Flutter POC
+# OpenAPI & Swagger Generator Flutter POC
 
-A fully functional Flutter application demonstrating the integration of **OpenAPI Generator** with **Dio**, **BLoC**, and **Clean Architecture**.
+A fully functional Flutter application demonstrating the integration of **OpenAPI / Swagger Generator** (YAML and JSON formats) with **Dio**, **BLoC**, and **Clean Architecture**.
 
 ---
 
 ## 🚀 Overview
 
-This project serves as a production-ready reference architecture for auto-generating API client code from an `openapi.yaml` specification in Flutter. It demonstrates how to seamlessly connect OpenAPI-generated code to Clean Architecture layers (Domain, Data, Presentation) using `flutter_bloc` state management.
+This project serves as a production-ready reference architecture for auto-generating API client code from an `openapi.yaml` or `swagger.json` specification in Flutter. It demonstrates how to seamlessly connect OpenAPI/Swagger-generated code to Clean Architecture layers (Domain, Data, Presentation) using `flutter_bloc` state management.
 
 It includes a built-in simulated backend interceptor so you can run and test the application immediately without needing a running external backend server!
 
@@ -14,7 +14,8 @@ It includes a built-in simulated backend interceptor so you can run and test the
 
 ## ✨ Features
 
-- **OpenAPI 3.0 Code Generation**: Configured via `openapi_generator_annotations` and `openapi_generator` using the `dart-dio` generator.
+- **OpenAPI 3.0 & Swagger Code Generation**: Supports both **YAML** (`openapi.yaml`) and **JSON** (`swagger.json` / `openapi.json`) specifications.
+- **Configured Generator**: Uses `openapi_generator_annotations` and `openapi_generator` with the `dart-dio` target generator.
 - **Clean Architecture**: Clear separation of concerns into Domain, Data, and Presentation layers.
 - **BLoC State Management**: Predictable state handling using `flutter_bloc` and `equatable`.
 - **Dio Network Client**: Robust HTTP client configured with logging and interceptors.
@@ -65,8 +66,8 @@ The application strictly adheres to Clean Architecture principles:
 ```text
 lib/
 ├── api/
-│   ├── openapi_config.dart          # OpenAPI Generator configuration class (@Openapi)
-│   └── generated/                   # Generated OpenAPI Dio code
+│   ├── openapi_config.dart          # OpenAPI / Swagger Generator config class (@Openapi)
+│   └── generated/                   # Generated OpenAPI/Swagger Dio code
 │       ├── api_client.dart          # Generated ApiClient wrapper
 │       ├── api/
 │       │   └── user_api.dart        # Generated UserApi endpoint (Dio)
@@ -100,93 +101,112 @@ lib/
 │           └── pages/
 │               └── user_page.dart   # Interactive User UI Page
 ├── main.dart                        # App Entry Point & Dependency Injection
-└── openapi.yaml                     # OpenAPI 3.0 API Definition Specification
+├── swagger.json                     # Swagger / OpenAPI JSON API Definition Specification
+└── openapi.yaml                     # OpenAPI YAML API Definition Specification
 ```
 
 ---
 
-## 📝 OpenAPI Specification (`openapi.yaml`)
+## 📝 API Specification Formats
 
-The API spec defines a `User` schema and a `GET /users/{id}` path:
+This project supports both **Swagger/JSON** (`swagger.json` or `openapi.json`) and **YAML** (`openapi.yaml`).
 
-```yaml
-openapi: 3.0.0
-info:
-  title: User API
-  version: 1.0.0
+### Swagger / JSON Format (`swagger.json`)
 
-servers:
-  - url: https://api.mycompany.com
-
-paths:
-  /users/{id}:
-    get:
-      operationId: getUser
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-
-components:
-  schemas:
-    User:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
+```json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "User API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.mycompany.com"
+    }
+  ],
+  "paths": {
+    "/users/{id}": {
+      "get": {
+        "operationId": "getUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
 ```
 
 ---
 
-## 🔄 Step-by-Step Guide: Re-running Generator for a New API
+## 🔄 Step-by-Step Guide: Re-running Generator for Swagger / JSON or YAML
 
-Follow these steps whenever you update `openapi.yaml` or add a new API endpoint/model schema to your project:
+Follow these steps whenever you update your API spec or add a new API endpoint / model schema:
 
-### Step 1: Update the OpenAPI Specification (`openapi.yaml`)
-Add your new endpoint paths or component schemas in `openapi.yaml`. For example, to add a `POST /users` endpoint or a new schema:
-
-```yaml
-paths:
-  /users:
-    post:
-      operationId: createUser
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateUserRequest'
-      responses:
-        '201':
-          description: User Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-```
+### Step 1: Update your Specification File
+Update `swagger.json` (or `openapi.json` / `openapi.yaml`) with your new paths and component schemas.
 
 ---
 
-### Step 2: Verify OpenAPI Generator Configuration (`lib/api/openapi_config.dart`)
-Ensure your generator configuration annotation is properly configured:
+### Step 2: Configure Generator Input Spec (`lib/api/openapi_config.dart`)
 
+Configure `lib/api/openapi_config.dart` to point to your desired specification file format:
+
+#### For Swagger / JSON Specification:
 ```dart
 import 'package:openapi_generator_annotations/openapi_generator_annotations.dart';
 
 @Openapi(
   apiPackage: 'openapi_poc_api',
-  inputSpec: InputSpec.yaml(),
+  inputSpec: InputSpec(path: 'swagger.json'), // Or InputSpec.json() for openapi.json
+  generatorName: Generator.dio,
+  outputDirectory: 'lib/api/generated',
+)
+class OpenAPIConfig {}
+```
+
+#### For YAML Specification:
+```dart
+import 'package:openapi_generator_annotations/openapi_generator_annotations.dart';
+
+@Openapi(
+  apiPackage: 'openapi_poc_api',
+  inputSpec: InputSpec.yaml(), // Points to openapi.yaml
   generatorName: Generator.dio,
   outputDirectory: 'lib/api/generated',
 )
@@ -197,7 +217,7 @@ class OpenAPIConfig {}
 
 ### Step 3: Re-run Code Generation
 
-Run `build_runner` to process `openapi.yaml` and generate/update the Dart Dio API client and model classes:
+Run `build_runner` to process the specification and generate/update the Dart Dio API client and model classes:
 
 ```bash
 # Option A: Using Dart run (Recommended)
@@ -206,11 +226,11 @@ dart run build_runner build --delete-conflicting-outputs
 # Option B: Using Flutter pub run
 flutter pub run build_runner build --delete-conflicting-outputs
 
-# Option C: Using OpenAPI Generator CLI directly (if installed)
-openapi-generator-cli generate -i openapi.yaml -g dart-dio -o lib/api/generated
+# Option C: Using OpenAPI Generator CLI directly for Swagger/JSON
+openapi-generator-cli generate -i swagger.json -g dart-dio -o lib/api/generated
 ```
 
-This will automatically create or update files under `lib/api/generated/`:
+This will automatically update the files in `lib/api/generated/`:
 - `lib/api/generated/model/` (Generated DTO classes & JSON serializers)
 - `lib/api/generated/api/` (Generated Dio API endpoint methods)
 - `lib/api/generated/api_client.dart` (ApiClient container)
